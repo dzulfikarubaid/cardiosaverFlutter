@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "208302366620",
+    "firebase_url": "https://esp32-gilang-data-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "esp32-gilang-data",
+    "storage_bucket": "esp32-gilang-data.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:208302366620:android:96572ddaf83bf2625cb259",
+        "android_client_info": {
+          "package_name": "com.example.cardio_2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "208302366620-lloain45i76n4ave44j38r60ivg40fnr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANANK3G9voA0u5caYGmkzSZrmuBwZH7Fc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "208302366620-lloain45i76n4ave44j38r60ivg40fnr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+  import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:cardio_2/screens/appointment_screen.dart';
@@ -17,50 +19,68 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final logger = Logger();
-  double firstDataValue = 0.0;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  String? userName; // Variable untuk menyimpan nama pengguna
+  String? imageUrl; // Variable untuk menyimpan URL gambar profil
+  // Function untuk mendapatkan nama pengguna dari Firestore
+  Future<void> getUserName() async {
+     final User? user = _auth.currentUser;
 
-  late Timer _fetchDataTimer;
-
-  Future<void> _fetchData() async {
-    final response =
-    await http.get(Uri.parse('https://aeli.vercel.app/api/nizaar'));
-
-    if (response.statusCode == 200) {
-      final responseData = json.decode(response.body);
-      if (responseData['data'] != null && responseData['data'].isNotEmpty) {
-        final firstDataKey = responseData['data'].keys.first;
-        firstDataValue = responseData['data']
-        [firstDataKey]; // Menyimpan nilai dalam variabel
-        logger.d(
-            'First data key: $firstDataKey, First data value: $firstDataValue');
-        setState(() {}); // Memanggil setState untuk memperbarui tampilan
-      } else {
-        logger.w('No data available in the response');
-      }
-    } else {
-      logger.e('Request failed with status: ${response.statusCode}');
-    }
-  }
-
-  void _fetchDataPeriodically() {
-    _fetchData();
-    _fetchDataTimer = Timer.periodic(Duration(milliseconds: 10), (_) {
-      _fetchData();
+  if (user != null) {
+    setState(() {
+      userName = user.displayName?.split(' ').first;
+      imageUrl = user.photoURL ?? '';
     });
   }
-
+}
   @override
   void initState() {
     super.initState();
-    _fetchDataPeriodically();
+    getUserName(); // Panggil fungsi untuk mendapatkan nama pengguna saat widget diinisialisasi
   }
 
-  @override
-  void dispose() {
-    _fetchDataTimer.cancel(); // Batalkan timer saat widget dihapus
-    super.dispose();
-  }
+  // Future<void> _fetchData() async {
+  //   final response =
+  //   await http.get(Uri.parse('https://'));
+
+  //   if (response.statusCode == 200) {
+  //     final responseData = json.decode(response.body);
+  //     if (responseData['data'] != null && responseData['data'].isNotEmpty) {
+  //       final firstDataKey = responseData['data'].keys.first;
+  //       firstDataValue = responseData['data']
+  //       [firstDataKey]; // Menyimpan nilai dalam variabel
+  //       logger.d(
+  //           'First data key: $firstDataKey, First data value: $firstDataValue');
+  //       setState(() {}); // Memanggil setState untuk memperbarui tampilan
+  //     } else {
+  //       logger.w('No data available in the response');
+  //     }
+  //   } else {
+  //     logger.e('Request failed with status: ${response.statusCode}');
+  //   }
+  // }
+
+  // void _fetchDataPeriodically() {
+  //   _fetchData();
+  //   _fetchDataTimer = Timer.periodic(Duration(milliseconds: 10), (_) {
+  //     _fetchData();
+  //   });
+  // }
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _fetchDataPeriodically();
+  // }
+
+  // @override
+  // void dispose() {
+  //   _fetchDataTimer.cancel(); // Batalkan timer saat widget dihapus
+  //   super.dispose();
+  // }
+  
+  
+  
   List doctors = [
     "doc_1.png",
     "doc_2.png",
@@ -144,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(
                         horizontal: 25,
                         vertical:20
@@ -154,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Column(
                           children: [
-                            Text("Hello, Santoso K.",
+                            Text('Hello, ${userName ?? ''}',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 20,
@@ -216,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           radius: 52.5,
                           child: CircleAvatar(
                             radius: 50,
-                            backgroundImage: AssetImage("images/user.png"),
+                            backgroundImage: imageUrl != null ? NetworkImage(imageUrl!) : NetworkImage('https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-Image.png'),
                           ),
                         )
                       ],

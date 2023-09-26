@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
   import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:cardio_2/screens/appointment_screen.dart';
 import 'package:cardio_2/screens/healthcheck_screen.dart';
@@ -17,69 +17,122 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
+class DataModel {
+  String? alamat;
+  String? risk;
+  int? bpm;
 
+  DataModel({
+    this.alamat,
+    this.risk,
+    this.bpm,
+  });
+}
 class _HomeScreenState extends State<HomeScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  List<dynamic> amplitudeData = [];
+  String? address;
+  String? riskLevel;
   String? userName; // Variable untuk menyimpan nama pengguna
-  String? imageUrl; // Variable untuk menyimpan URL gambar profil
+  String? imageUrl;
+  String? Uid; // Variable untuk menyimpan URL gambar profil
   // Function untuk mendapatkan nama pengguna dari Firestore
   Future<void> getUserName() async {
      final User? user = _auth.currentUser;
 
   if (user != null) {
     setState(() {
+      Uid = user.uid;
       userName = user.displayName?.split(' ').first;
-      imageUrl = user.photoURL ?? '';
+      imageUrl = user.photoURL ?? 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/User-avatar.svg/2048px-User-avatar.svg.png';
     });
   }
+  }
+  int latestAmplitude = 0;
+  
+  Future<void> fetchDataFromFirestore(String id) async {
+  try {
+    await http.get(Uri.parse('http://4.246.201.17/api/data_dl/$id/'))
+      .then((response) {
+        print(response.body);
+      })
+      .catchError((error) {
+        print(error);
+      });
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance
+        .collection('heart_rate')  // Ganti dengan nama koleksi yang sesuai
+        .doc(id)  // Ganti dengan ID dokumen yang sesuai
+        .get();
+    DocumentSnapshot alamat = await FirebaseFirestore.instance
+        .collection('heart_rate')  // Ganti dengan nama koleksi yang sesuai
+        .doc(Uid)  // Ganti dengan ID dokumen yang sesuai
+        .get();
+
+    if (alamat.exists) {
+      dynamic data = alamat.data();
+      if (data != null) {
+        address = data['alamat'];
+        
+      }
+    }
+    if (snapshot.exists) {
+        dynamic data = snapshot.data();
+        if (data != null) {
+          amplitudeData = data['amplitude'];
+          riskLevel = data['risk_cat'];
+        } else {
+          // Handle jika data Firestore kosong
+          print("Data Firestore kosong.");
+        }
+        if (amplitudeData != null) {
+          if (amplitudeData is List && amplitudeData.isNotEmpty) {
+            // Ambil amplitude terbaru dari daftar (list)
+            int latest = amplitudeData.last;
+            setState(() {
+              latestAmplitude = latest;
+            });
+          } else {
+            print("Field 'amplitude' di Firestore tidak memiliki data.");
+          }
+        } else {
+          print("Field 'amplitude' tidak ditemukan di Firestore.");
+        }
+      } else {
+        print("Dokumen dengan ID $id tidak ditemukan di Firestore.");
+      }
+  } catch (error) {
+    print("Terjadi kesalahan saat mengambil data dari Firestore: $error");
+  }
+  }
+  Future<void> saveData() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt('bpm', latestAmplitude);
+  await prefs.setString('risk_cat', riskLevel.toString());
+  await prefs.setString('alamat', address.toString());
+  }
+  
+ Future<DataModel> loadData() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? alamat = prefs.getString('alamat');
+  String? risk = prefs.getString('risk_cat');
+  int? bpm = prefs.getInt('bpm');
+
+  return DataModel(
+    alamat: alamat,
+    risk: risk,
+    bpm: bpm,
+  );
 }
+
+  
   @override
   void initState() {
     super.initState();
+    fetchDataFromFirestore('test');
     getUserName(); // Panggil fungsi untuk mendapatkan nama pengguna saat widget diinisialisasi
   }
-
-  // Future<void> _fetchData() async {
-  //   final response =
-  //   await http.get(Uri.parse('https://'));
-
-  //   if (response.statusCode == 200) {
-  //     final responseData = json.decode(response.body);
-  //     if (responseData['data'] != null && responseData['data'].isNotEmpty) {
-  //       final firstDataKey = responseData['data'].keys.first;
-  //       firstDataValue = responseData['data']
-  //       [firstDataKey]; // Menyimpan nilai dalam variabel
-  //       logger.d(
-  //           'First data key: $firstDataKey, First data value: $firstDataValue');
-  //       setState(() {}); // Memanggil setState untuk memperbarui tampilan
-  //     } else {
-  //       logger.w('No data available in the response');
-  //     }
-  //   } else {
-  //     logger.e('Request failed with status: ${response.statusCode}');
-  //   }
-  // }
-
-  // void _fetchDataPeriodically() {
-  //   _fetchData();
-  //   _fetchDataTimer = Timer.periodic(Duration(milliseconds: 10), (_) {
-  //     _fetchData();
-  //   });
-  // }
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _fetchDataPeriodically();
-  // }
-
-  // @override
-  // void dispose() {
-  //   _fetchDataTimer.cancel(); // Batalkan timer saat widget dihapus
-  //   super.dispose();
-  // }
   
-  
+
   
   List doctors = [
     "doc_1.png",
@@ -119,6 +172,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Color iconColor;
+    if (riskLevel == 'risiko rendah') {
+      iconColor = Colors.green;
+    } else if (riskLevel == 'risiko sedang') {
+      iconColor = Colors.yellow;
+    } else if (riskLevel == 'risiko tinggi') {
+      iconColor = Colors.red;
+    } else {
+      iconColor = Colors.white;
+    }
     return SafeArea(
         child:Scaffold(
           backgroundColor:  const Color.fromARGB(255, 80, 128, 240),
@@ -180,6 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'Noto Sans',
+                                
                               ),
                             ),
                             Padding(
@@ -213,11 +277,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 children: [
                                   Icon(Icons.warning,
                                     size: 20,
-                                    color: Colors.red,
+                                    color: iconColor,
                                   ),
                                   Padding(
                                     padding: EdgeInsets.only(left: 10),
-                                    child: Text("High Risk",
+                                    child: Text(riskLevel ?? ' ',
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 16,
@@ -236,7 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           radius: 52.5,
                           child: CircleAvatar(
                             radius: 50,
-                            backgroundImage: imageUrl != null ? NetworkImage(imageUrl!) : NetworkImage('https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-Image.png'),
+                            backgroundImage: NetworkImage(imageUrl.toString()),
                           ),
                         )
                       ],
@@ -334,10 +398,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                           scale: 1,
                                         ),
                                       ),
-                                      const Row(
+                                      Row(
                                         // mainAxisAlignment: MainAxisAlignment.,
                                         children: [
-                                          Text("50",
+                                          Text("${latestAmplitude}",
                                             style: TextStyle(
                                               fontSize: 24,
                                               fontWeight: FontWeight.bold

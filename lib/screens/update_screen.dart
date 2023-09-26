@@ -98,7 +98,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   Future<void> _updateProfile() async {
     final user = FirebaseAuth.instance.currentUser;
-
+    Navigator.pop(context);
     if (user != null) {
       try {
         await user.updateDisplayName(nameController.text);

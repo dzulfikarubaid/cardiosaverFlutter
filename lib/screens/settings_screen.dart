@@ -1,10 +1,10 @@
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cardio_2/screens/login_screen.dart';
 import 'package:cardio_2/screens/update_screen.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -16,32 +16,84 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final user = FirebaseAuth.instance.currentUser;
-  String profileImageUrl = "";
+  String? profileImageUrl;
+  String? userDisplayName = 'Guest'; // Default display name
+  String? userAge = 'Belum diatur'; // Default age
+
+  // Fungsi untuk mengambil display name dari FirebaseAuth
+  Future<void> getDisplayName() async {
+    final currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      setState(() {
+        userDisplayName = currentUser.displayName ?? 'Guest';
+      });
+    }
+  }
 
   Future<void> getProfileImageUrl() async {
-      setState(() {
-        profileImageUrl = user?.photoURL ?? '';
-      });
+    setState(() {
+      profileImageUrl = user?.photoURL ??
+          'https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/User-avatar.svg/2048px-User-avatar.svg.png';
+    });
   }
-  // Function to sign out the user
+
+  // Fungsi untuk mengambil umur dari Firestore
+  Future<String?> getUserAgeFromFirestore() async {
+    final docSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_auth.currentUser?.uid)
+        .get();
+
+    if (docSnapshot.exists) {
+      final userData = docSnapshot.data() as Map<String, dynamic>;
+      return userData['umur'] as String?;
+    } else {
+      return null;
+    }
+  }
+
+  // Fungsi untuk mengambil umur dari SharedPreferences
+  Future<void> getUserAge() async {
+    final prefs = await SharedPreferences.getInstance();
+    String age = prefs.getString('umur') ?? 'Belum diatur';
+
+    setState(() {
+      userAge = age;
+    });
+  }
+
+  // Fungsi untuk menyimpan umur ke SharedPreferences
+  Future<void> setUserAge(String age) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('umur', age);
+  }
+
+  // Fungsi untuk logout
   Future<void> _signOut(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => LoginScreen(), // Replace with your login screen
+          builder: (context) => LoginScreen(),
         ),
       );
     } catch (e) {
       print('Error signing out: $e');
     }
   }
+
   @override
   void initState() {
     super.initState();
-    getProfileImageUrl(); // Panggil fungsi untuk mendapatkan URL gambar profil saat inisialisasi
+    getDisplayName(); // Ambil display name saat inisialisasi
+    getProfileImageUrl();
+    getUserAgeFromFirestore().then((value) {
+      if (value != null) {
+        setUserAge(value);
+        getUserAge(); // Ambil umur dari SharedPreferences saat inisialisasi
+      }
+    });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -65,55 +117,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
             leading: CircleAvatar(
               maxRadius: 30,
-              backgroundImage: NetworkImage(profileImageUrl), // Gunakan URL gambar profil
+              backgroundImage: NetworkImage(profileImageUrl.toString()),
             ),
-            title: StreamBuilder<User?>(
-              stream: _auth.authStateChanges(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.active) {
-                  final user = snapshot.data;
-                  if (user != null) {
-                    return Text(
-                      user.displayName ?? '',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 25,
-                      ),
-                    );
-                  }
-                }
-                return Text(
-                  'Guest',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 25,
-                  ),
-                );
-              },
+            title: Text(
+              userDisplayName ?? 'Guest',
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 25,
+              ),
             ),
-            subtitle: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(_auth.currentUser?.uid)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData || !snapshot.data!.exists) {
-                  return Text(
-                    'Umur: Belum diatur',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                    ),
-                  );
-                }
-                final userData = snapshot.data!.data()!;
-                final userAge = userData['umur'] ?? 'Belum diatur';
-                return Text(
-                  'Umur: $userAge',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                  ),
-                );
-              },
+            subtitle: Text(
+              'Umur: $userAge',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ),
           Divider(
@@ -121,153 +138,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
             thickness: 2,
             color: Colors.black26,
           ),
-          ListTile(
-            onTap: () {},
-            leading: Container(
-              padding: const EdgeInsets.all(10),
-              child: const Icon(
-                Icons.people_alt_outlined,
-                color: Colors.black54,
-                size: 30,
-              ),
-            ),
-            title: const Text(
-              "Linked Account",
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-              ),
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios_rounded),
-          ),
-          ListTile(
-            onTap: () {},
-            leading: Container(
-              padding: const EdgeInsets.all(10),
-              child: const Icon(
-                Icons.person_outlined,
-                color: Colors.black54,
-                size: 30,
-              ),
-            ),
-            title: const Text(
-              "Account",
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-              ),
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios_rounded),
-          ),
-          ListTile(
-            onTap: () {},
-            leading: Container(
-              padding: const EdgeInsets.all(10),
-              child: const Icon(
-                CupertinoIcons.globe,
-                color: Colors.black54,
-                size: 30,
-              ),
-            ),
-            title: const Text(
-              "Language",
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-              ),
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios_rounded),
-          ),
-          Divider(
-            height: 20,
-            thickness: 2,
-            color: Colors.black26,
-          ),
-          ListTile(
-            onTap: () {},
-            leading: Container(
-              padding: const EdgeInsets.all(10),
-              child: const Icon(
-                CupertinoIcons.exclamationmark_circle,
-                color: Colors.black54,
-                size: 30,
-              ),
-            ),
-            title: const Text(
-              "About",
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-              ),
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios_rounded),
-          ),
-          ListTile(
-            onTap: () {},
-            leading: Container(
-              padding: const EdgeInsets.all(10),
-              child: const Icon(
-                Icons.help_outline_rounded,
-                color: Colors.black54,
-                size: 30,
-              ),
-            ),
-            title: const Text(
-              "Help",
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-              ),
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios_rounded),
-          ),
-          ListTile(
-            onTap: () {},
-            leading: Container(
-              padding: const EdgeInsets.all(10),
-              child: const Icon(
-                Icons.feedback_outlined,
-                color: Colors.black54,
-                size: 30,
-              ),
-            ),
-            title: const Text(
-              "Feedback",
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-              ),
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios_rounded),
-          ),
-          Divider(
-            height: 20,
-            thickness: 2,
-            color: Colors.black26,
-          ),
-          ListTile(
+          // ...
+          // Daftar item pengaturan lainnya
+          // ...
+          buildListTile(
+            title: "Log out",
+            icon: Icons.logout_outlined,
             onTap: () {
-              _signOut(context); // Call the sign-out function
+              _signOut(context);
             },
-            leading: Container(
-              padding: const EdgeInsets.all(10),
-              child: const Icon(
-                Icons.logout_outlined,
-                color: Colors.black54,
-                size: 30,
-              ),
-            ),
-            title: const Text(
-              "Log out",
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-              ),
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios_rounded),
           ),
         ],
       ),
+    );
+  }
+
+  ListTile buildListTile({
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        child: Icon(
+          icon,
+          color: Colors.black54,
+          size: 30,
+        ),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.w500,
+          fontSize: 15,
+        ),
+      ),
+      trailing: const Icon(Icons.arrow_forward_ios_rounded),
     );
   }
 }

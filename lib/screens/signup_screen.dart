@@ -66,7 +66,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
     } else {
       setState(() {
-        errorText = 'An unknown error occurred.';
+        errorText = 'An unknown error occurred';
       });
     }
   } catch (e) {

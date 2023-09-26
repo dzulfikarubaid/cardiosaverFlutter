@@ -1,12 +1,12 @@
-import 'package:cardio_2/widgets/navbar_roots.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cardio_2/screens/signup_screen.dart';
-
+import 'package:cardio_2/widgets/navbar_roots.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
-
+  
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -16,26 +16,65 @@ class _LoginScreenState extends State<LoginScreen> {
   bool passToggle = true;
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  String? errorText;
+  bool isLoading = false; // Variable untuk menampilkan loading indicator
 
   Future<void> _login() async {
+    setState(() {
+      isLoading = true; // Menampilkan loading indicator saat login dimulai
+    });
+
     try {
       final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
-      Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => const NavBarRoots(),
-                ));
-      // Login was successful, you can navigate to the next screen or perform other actions here.
+
+      // Login berhasil, arahkan pengguna ke layar NavBarRoots
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const NavBarRoots(),
+        ),
+      );
       print('Login successful: ${userCredential.user?.email}');
+      setState(() {
+        errorText = null;
+        isLoading = false; // Sembunyikan loading indicator setelah login berhasil
+      });
     } on FirebaseAuthException catch (e) {
+      setState(() {
+        isLoading = false; // Sembunyikan loading indicator saat login gagal
+      });
+
       if (e.code == 'user-not-found') {
-        print('No user found for that email.');
+        setState(() {
+          errorText = 'No user found for that email.';
+        });
       } else if (e.code == 'wrong-password') {
-        print('Wrong password provided.');
+        setState(() {
+          errorText = 'Wrong password provided.';
+        });
+
+      }
+      else if (e.code == 'invalid-email'){
+        setState(() {
+          errorText = 'Please enter a valid email.';
+        });
+        
+      }
+      else{
+        setState(() {
+        errorText = 'An unknown error occurred.';
+      });
+        print('Error occurred: $e');
       }
     } catch (e) {
-      print('Error: $e');
+      setState(() {
+        isLoading = false; // Sembunyikan loading indicator saat terjadi kesalahan
+        errorText = 'An error occurred: $e';
+      });
+      print('Error occurred: $e');
     }
   }
 
@@ -52,6 +91,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 Padding(
                   padding: const EdgeInsets.all(20),
                   child: Image.asset("images/screen2.png"),
+                ),
+                Text(
+                  errorText ?? " ", // Menampilkan pesan kesalahan jika ada
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 12,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Padding(
@@ -100,19 +146,25 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Colors.blueAccent,
                       borderRadius: BorderRadius.circular(50),
                       child: InkWell(
-                        onTap: _login,
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(
-                              vertical: 15, horizontal: 40),
+                        onTap: isLoading ? null : _login, // Nonaktifkan tombol saat loading
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 15,
+                            horizontal: 40,
+                          ),
                           child: Center(
-                            child: Text(
-                              "Log In",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 25,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            child: isLoading
+                                ? LoadingAnimationWidget.horizontalRotatingDots(
+                                  color: Colors.white, size: 25
+                                ) // Tampilkan loading indicator jika isLoading true
+                                : Text(
+                                    "Log In",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                           ),
                         ),
                       ),

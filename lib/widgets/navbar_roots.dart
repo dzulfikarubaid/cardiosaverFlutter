@@ -1,7 +1,9 @@
+import 'package:cardio_2/screens/flyer_chat_screen.dart';
 import 'package:cardio_2/screens/home_screen.dart';
 import 'package:cardio_2/screens/messages_screen.dart';
 import 'package:cardio_2/screens/report_screen.dart';
 import 'package:cardio_2/screens/settings_screen.dart';
+import 'package:cardio_2/screens/flyer_rooms_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -15,10 +17,12 @@ class NavBarRoots extends StatefulWidget {
 class _NavBarRootsState extends State<NavBarRoots> {
   int _selectedIndex = 0;
   final _screens = [
-    HomeScreen(title: '',), // Home Screen
-     MessagesScreen(), // Messages Screen
-     ReportScreen(), // Report Screen
-     SettingsScreen(), // Settings Screen
+    const HomeScreen(
+      title: '',
+    ), // Home Screen
+    const FlyerRoomsScreen(), // Messages Screen
+    const ReportScreen(), // Report Screen
+    const SettingsScreen(), // Settings Screen
   ];
   @override
   Widget build(BuildContext context) {
@@ -29,7 +33,6 @@ class _NavBarRootsState extends State<NavBarRoots> {
         height: 70,
         child: BottomNavigationBar(
           backgroundColor: Colors.white,
-
           type: BottomNavigationBarType.fixed,
           selectedItemColor: Color.fromARGB(255, 80, 128, 240),
           unselectedItemColor: Colors.black26,
@@ -38,7 +41,7 @@ class _NavBarRootsState extends State<NavBarRoots> {
             fontSize: 15,
           ),
           currentIndex: _selectedIndex,
-          onTap: (index){
+          onTap: (index) {
             setState(() {
               _selectedIndex = index;
             });
@@ -46,7 +49,7 @@ class _NavBarRootsState extends State<NavBarRoots> {
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_filled),
-            label: "Home",
+              label: "Home",
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.chat_bubble_text_fill),

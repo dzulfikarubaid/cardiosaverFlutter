@@ -3,6 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cardio_2/screens/login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class SignUpScreen extends StatefulWidget {
   static const String routeName = '/auth-screen';
@@ -15,66 +18,92 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // Firestore instance
+  final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance; // Firestore instance
   bool passToggle = true;
-  TextEditingController fullNameController = TextEditingController();
+  TextEditingController firstnameController = TextEditingController();
+  TextEditingController lastnameController = TextEditingController();
   TextEditingController emailAddressController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController phoneNumberController = TextEditingController();
   String? errorText;
+  bool isLoading = false;
 
   Future<void> _register() async {
     try {
+      setState(() {
+        isLoading = true;
+      });
+      String fullname =
+          "${firstnameController.text} ${lastnameController.text}";
       final credential = await _auth.createUserWithEmailAndPassword(
         email: emailAddressController.text,
         password: passwordController.text,
-        
       );
+      await FirebaseChatCore.instance.createUserInFirestore(
+        types.User(
+          firstName: firstnameController.text,
+          id: credential.user!.uid,
+          imageUrl:
+              'https://ui-avatars.com/api/?name=${firstnameController.text[0]}+${lastnameController.text[0]}',
+          lastName: lastnameController.text,
+        ),
+      );
+
       final User? user = credential.user;
       if (user != null) {
-        await user.updateDisplayName(fullNameController.text);
+        await user.updateDisplayName(fullname);
       }
-
-
-      // Registration was successful, you can navigate to the next screen or perform other actions here.
-      print('Registration successful: ${credential.user?.email}');
 
       // Create a Firestore document for the registered user
       await _firestore.collection('users').doc(credential.user?.uid).set({
-        'full_name': fullNameController.text,
+        'firstname': firstnameController.text,
+        'lastname': lastnameController.text,
         'email': emailAddressController.text,
         'phone_number': phoneNumberController.text,
       });
+      if (!mounted) return;
       Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => LoginScreen(), // Replace LoginScreen with your login page
-      ),
-      
-    );
-    setState(() {
-      errorText = null;
-    });
-    
+        MaterialPageRoute(
+          builder: (context) =>
+              const LoginScreen(), // Replace LoginScreen with your login page
+        ),
+      );
+      setState(() {
+        errorText = null;
+      });
     } on FirebaseAuthException catch (e) {
-    if (e.code == 'weak-password') {
+      if (e.code == 'weak-password') {
+        setState(() {
+          errorText = 'The password provided is too weak.';
+        });
+      } else if (e.code == 'email-already-in-use') {
+        setState(() {
+          errorText = 'The account already exists for that email.';
+        });
+      } else {
+        setState(() {
+          errorText = 'An unknown error occurred';
+        });
+      }
+    } catch (e) {
       setState(() {
-        errorText = 'The password provided is too weak.';
-      });
-    } else if (e.code == 'email-already-in-use') {
-      setState(() {
-        errorText = 'The account already exists for that email.';
-      });
-    } else {
-      setState(() {
-        errorText = 'An unknown error occurred';
+        errorText = 'An error occurred: $e';
       });
     }
-  } catch (e) {
     setState(() {
-      errorText = 'An error occurred: $e';
+      isLoading = false;
     });
   }
-}
+
+  @override
+  void dispose() {
+    firstnameController.dispose();
+    lastnameController.dispose();
+    emailAddressController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,19 +119,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: Image.asset("images/screen2.png"),
                 ),
                 Text(
-                  errorText ?? '', // Display errorText if it's not null, otherwise display an empty string
-                  style: TextStyle(
+                  errorText ??
+                      '', // Display errorText if it's not null, otherwise display an empty string
+                  style: const TextStyle(
                     color: Colors.red, // You can customize the text color
                   ),
                 ),
                 const SizedBox(height: 15),
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8, horizontal: 15),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
                   child: TextField(
-                    controller: fullNameController,
+                    controller: firstnameController,
                     decoration: InputDecoration(
-                      labelText: "Full Name",
+                      labelText: "First Name",
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -111,8 +141,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8, horizontal: 15),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                  child: TextField(
+                    controller: lastnameController,
+                    decoration: InputDecoration(
+                      labelText: "Last Name",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      prefixIcon: const Icon(Icons.person),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
                   child: TextField(
                     controller: emailAddressController,
                     decoration: InputDecoration(
@@ -125,8 +169,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8, horizontal: 15),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
                   child: TextField(
                     controller: passwordController,
                     obscureText: passToggle ? true : false,
@@ -153,8 +197,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8, horizontal: 15),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
                   child: TextField(
                     controller: phoneNumberController,
                     decoration: InputDecoration(
@@ -176,18 +220,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       borderRadius: BorderRadius.circular(50),
                       child: InkWell(
                         onTap: _register,
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
                               vertical: 15, horizontal: 40),
                           child: Center(
-                            child: Text(
-                              "Sign Up",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 25,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            child: isLoading
+                                ? LoadingAnimationWidget.horizontalRotatingDots(
+                                    color: Colors.white, size: 25)
+                                : const Text(
+                                    "Sign Up",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                           ),
                         ),
                       ),

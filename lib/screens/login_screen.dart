@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:cardio_2/screens/signup_screen.dart';
 import 'package:cardio_2/widgets/navbar_roots.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
-  
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -25,22 +26,24 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      await _auth.signInWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
 
       // Login berhasil, arahkan pengguna ke layar NavBarRoots
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => const NavBarRoots(),
         ),
       );
-      print('Login successful: ${userCredential.user?.email}');
+      // print('Login successful: ${userCredential.user?.email}');
       setState(() {
         errorText = null;
-        isLoading = false; // Sembunyikan loading indicator setelah login berhasil
+        isLoading =
+            false; // Sembunyikan loading indicator setelah login berhasil
       });
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -55,23 +58,20 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() {
           errorText = 'Wrong password provided.';
         });
-
-      }
-      else if (e.code == 'invalid-email'){
+      } else if (e.code == 'invalid-email') {
         setState(() {
           errorText = 'Please enter a valid email.';
         });
-        
-      }
-      else{
+      } else {
         setState(() {
-        errorText = 'An unknown error occurred.';
-      });
+          errorText = 'An unknown error occurred.';
+        });
         print('Error occurred: $e');
       }
     } catch (e) {
       setState(() {
-        isLoading = false; // Sembunyikan loading indicator saat terjadi kesalahan
+        isLoading =
+            false; // Sembunyikan loading indicator saat terjadi kesalahan
         errorText = 'An error occurred: $e';
       });
       print('Error occurred: $e');
@@ -146,7 +146,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Colors.blueAccent,
                       borderRadius: BorderRadius.circular(50),
                       child: InkWell(
-                        onTap: isLoading ? null : _login, // Nonaktifkan tombol saat loading
+                        onTap: isLoading
+                            ? null
+                            : _login, // Nonaktifkan tombol saat loading
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             vertical: 15,
@@ -155,8 +157,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Center(
                             child: isLoading
                                 ? LoadingAnimationWidget.horizontalRotatingDots(
-                                  color: Colors.white, size: 25
-                                ) // Tampilkan loading indicator jika isLoading true
+                                    color: Colors.white,
+                                    size:
+                                        25) // Tampilkan loading indicator jika isLoading true
                                 : Text(
                                     "Log In",
                                     style: TextStyle(

@@ -43,10 +43,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       await FirebaseChatCore.instance.createUserInFirestore(
         types.User(
           firstName: firstnameController.text,
+          lastName: lastnameController.text,
           id: credential.user!.uid,
           imageUrl:
               'https://ui-avatars.com/api/?name=${firstnameController.text[0]}+${lastnameController.text[0]}',
-          lastName: lastnameController.text,
         ),
       );
 

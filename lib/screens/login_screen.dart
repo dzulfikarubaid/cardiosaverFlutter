@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cardio_2/screens/signup_screen.dart';
 import 'package:cardio_2/widgets/navbar_roots.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -80,6 +81,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localStorage = GetStorage();
+
     return Scaffold(
       body: Material(
         color: Colors.white,
@@ -123,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       labelText: "Enter Password",
-                      prefixIcon: Icon(Icons.lock),
+                      prefixIcon: const Icon(Icons.lock),
                       suffixIcon: InkWell(
                         onTap: () {
                           setState(() {
@@ -160,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     color: Colors.white,
                                     size:
                                         25) // Tampilkan loading indicator jika isLoading true
-                                : Text(
+                                : const Text(
                                     "Log In",
                                     style: TextStyle(
                                       color: Colors.white,

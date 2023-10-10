@@ -74,7 +74,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await FirebaseAuth.instance.signOut();
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => LoginScreen(),
+          builder: (context) => const LoginScreen(),
         ),
       );
     } catch (e) {

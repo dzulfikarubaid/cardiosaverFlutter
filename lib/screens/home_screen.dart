@@ -150,8 +150,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    fetchDataFromFirestore("${userName!}_${DateTime.now().toString().replaceAll(" ", "").replaceAll('-', '').replaceAll(':', '')}");
+    
     getUserName(); // Panggil fungsi untuk mendapatkan nama pengguna saat widget diinisialisasi
+    if(Uid != null){
+      fetchDataFromFirestore("${Uid!}_${DateTime.now().toString().replaceAll(" ", "").replaceAll('-', '').replaceAll(':', '').replaceAll('.', '')}");
+    }
   }
 
   List doctors = [

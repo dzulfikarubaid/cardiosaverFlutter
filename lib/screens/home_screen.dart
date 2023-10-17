@@ -21,18 +21,23 @@ class HomeScreen extends StatefulWidget {
 class DataModel {
   String? alamat;
   String? risk;
-  int? bpm;
+  String? bpm;
+  String? rr;
+
 
   DataModel({
     this.alamat,
     this.risk,
     this.bpm,
+    this.rr
   });
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   List<dynamic> amplitudeData = [];
+  String? bpm;
+  String? rr;
   String? address;
   String? riskLevel;
   String? userName; // Variable untuk menyimpan nama pengguna
@@ -81,6 +86,17 @@ class _HomeScreenState extends State<HomeScreen> {
       if (snapshot.exists) {
         dynamic data = snapshot.data();
         if (data != null) {
+          bpm = data['bpm'];
+           double originalDouble = double.parse(bpm.toString());
+          // Bulatkan ke dua desimal
+          double roundedDouble = double.parse(originalDouble.toStringAsFixed(2));
+          // Konversi kembali ke string
+          bpm = roundedDouble.toString();
+          rr = data['interval'];
+          double dataDouble = double.parse(rr.toString());
+          // Bulatkan ke dua desimal
+          double roundeddata = double.parse(dataDouble.toStringAsFixed(2));
+          rr = roundeddata.toString();
           amplitudeData = data['amplitude'];
           riskLevel = data['risk_cat'];
         } else {
@@ -110,7 +126,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> saveData() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('bpm', latestAmplitude);
+    await prefs.setString('bpm', bpm.toString());
+    await prefs.setString('rr', rr.toString());
     await prefs.setString('risk_cat', riskLevel.toString());
     await prefs.setString('alamat', address.toString());
   }
@@ -119,19 +136,21 @@ class _HomeScreenState extends State<HomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     String? alamat = prefs.getString('alamat');
     String? risk = prefs.getString('risk_cat');
-    int? bpm = prefs.getInt('bpm');
+    String? rrData = prefs.getString('rr');
+    String? bpmData = prefs.getString('bpm');
 
     return DataModel(
       alamat: alamat,
       risk: risk,
-      bpm: bpm,
+      bpm: bpmData,
+      rr: rrData,
     );
   }
 
   @override
   void initState() {
     super.initState();
-    fetchDataFromFirestore('test');
+    fetchDataFromFirestore("${userName!}_${DateTime.now().toString().replaceAll(" ", "").replaceAll('-', '').replaceAll(':', '')}");
     getUserName(); // Panggil fungsi untuk mendapatkan nama pengguna saat widget diinisialisasi
   }
 
@@ -379,7 +398,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   width:
                                       MediaQuery.of(context).size.width / 3.5,
                                   height:
-                                      MediaQuery.of(context).size.height / 5.2,
+                                      MediaQuery.of(context).size.height / 4.5,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     crossAxisAlignment:
@@ -411,7 +430,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         // mainAxisAlignment: MainAxisAlignment.,
                                         children: [
                                           Text(
-                                            "${latestAmplitude}",
+                                            "${bpm}",
                                             style: TextStyle(
                                                 fontSize: 24,
                                                 fontWeight: FontWeight.bold),
@@ -460,7 +479,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   width:
                                       MediaQuery.of(context).size.width / 3.5,
                                   height:
-                                      MediaQuery.of(context).size.height / 5.2,
+                                      MediaQuery.of(context).size.height / 4.5,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     crossAxisAlignment:
@@ -487,18 +506,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                           scale: 0.95,
                                         ),
                                       ),
-                                      const Row(
+                                      Row(
                                         // mainAxisAlignment: MainAxisAlignment.,
                                         children: [
                                           Text(
-                                            "1.2",
+                                            "${rr}",
                                             style: TextStyle(
                                                 fontSize: 24,
                                                 fontWeight: FontWeight.bold),
                                           ),
                                           SizedBox(width: 10),
                                           Text(
-                                            "sekon",
+                                            "sekn",
                                             style: TextStyle(
                                               fontWeight: FontWeight.w700,
                                               fontSize: 18,

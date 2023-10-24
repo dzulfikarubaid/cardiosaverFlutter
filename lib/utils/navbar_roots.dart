@@ -1,9 +1,7 @@
-import 'package:cardio_2/screens/flyer_chat_screen.dart';
-import 'package:cardio_2/screens/home_screen.dart';
-import 'package:cardio_2/screens/messages_screen.dart';
-import 'package:cardio_2/screens/report_screen.dart';
-import 'package:cardio_2/screens/settings_screen.dart';
-import 'package:cardio_2/screens/flyer_rooms_screen.dart';
+import 'package:cardio_2/features/chat_feature/views/messages_screen.dart';
+import 'package:cardio_2/features/home_feature/views/home_screen.dart';
+import 'package:cardio_2/features/report_feature/views/report_screen.dart';
+import 'package:cardio_2/features/settings_feature/views/settings_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -20,7 +18,7 @@ class _NavBarRootsState extends State<NavBarRoots> {
     const HomeScreen(
       title: '',
     ), // Home Screen
-    const FlyerRoomsScreen(), // Messages Screen
+    const MessagesScreen(), // Messages Screen
     const ReportScreen(), // Report Screen
     const SettingsScreen(), // Settings Screen
   ];

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 // ignore: must_be_immutable
 class AppointmentScreen extends StatelessWidget {
-
   List doctors = [
     "doc_1.png",
     "doc_2.png",
@@ -27,41 +26,46 @@ class AppointmentScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       InkWell(
-                        onTap: (){
+                        onTap: () {
                           Navigator.pop(context);
                         },
-                        child: const Icon(Icons.arrow_back_ios_new,
+                        child: const Icon(
+                          Icons.arrow_back_ios_new,
                           color: Colors.white,
                           size: 25,
                         ),
                       ),
                       InkWell(
-                        onTap: (){},
-                        child: const Icon(Icons.more_vert_rounded,
+                        onTap: () {},
+                        child: const Icon(
+                          Icons.more_vert_rounded,
                           color: Colors.white,
                           size: 25,
                         ),
                       )
                     ],
                   ),
-                   Padding(
+                  Padding(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        const CircleAvatar(radius: 35,
-                        backgroundImage: AssetImage("images/doc_1.png"),
+                        const CircleAvatar(
+                          radius: 35,
+                          backgroundImage: AssetImage("images/doc_1.png"),
                         ),
                         const SizedBox(height: 15),
-                        const Text("Dr. Anissa, Sp.Jp",
-                        style: TextStyle(
-                          fontSize: 23,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
+                        const Text(
+                          "Dr. Anissa, Sp.Jp",
+                          style: TextStyle(
+                            fontSize: 23,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
                         ),
                         const SizedBox(height: 5),
-                        const Text("RSUD dr Soetomo Surabaya",
+                        const Text(
+                          "RSUD dr Soetomo Surabaya",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -100,14 +104,13 @@ class AppointmentScreen extends StatelessWidget {
                         )
                       ],
                     ),
-                   ),
-
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
             Container(
-              height: MediaQuery.of(context).size.height/1.5,
+              height: MediaQuery.of(context).size.height / 1.5,
               width: double.infinity,
               padding: const EdgeInsets.only(
                 top: 20,
@@ -118,8 +121,7 @@ class AppointmentScreen extends StatelessWidget {
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
-                  )
-              ),
+                  )),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.max,
@@ -150,17 +152,17 @@ class AppointmentScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      const Icon(
-                          Icons.star,
-                          color: Colors.amber),
-                      const Text("4.8",
+                      const Icon(Icons.star, color: Colors.amber),
+                      const Text(
+                        "4.8",
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: 16,
                         ),
                       ),
                       const SizedBox(width: 5),
-                      const Text("(178)",
+                      const Text(
+                        "(178)",
                         style: TextStyle(
                           color: Color.fromARGB(255, 119, 151, 238),
                           fontWeight: FontWeight.w500,
@@ -168,8 +170,10 @@ class AppointmentScreen extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      TextButton(onPressed: (){},
-                        child: const Text("See all",
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text(
+                          "See all",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -179,33 +183,34 @@ class AppointmentScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 160,
+                  SizedBox(
+                    height: 160,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: 3,
-                      itemBuilder: (context, index){
+                      itemBuilder: (context, index) {
                         return Container(
                           margin: const EdgeInsets.all(10),
                           padding: const EdgeInsets.symmetric(vertical: 5),
                           decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(10),
-                              boxShadow:  [
+                              boxShadow: const [
                                 BoxShadow(
                                   color: Colors.black12,
                                   blurRadius: 4,
                                   spreadRadius: 2,
                                 )
-                              ]
-                          ),
+                              ]),
                           child: SizedBox(
-                            width: MediaQuery.of(context).size.width/1.4,
+                            width: MediaQuery.of(context).size.width / 1.4,
                             child: Column(
                               children: [
                                 ListTile(
                                   leading: CircleAvatar(
                                     radius: 25,
-                                    backgroundImage: AssetImage("images/${doctors[index]}"),
+                                    backgroundImage:
+                                        AssetImage("images/${doctors[index]}"),
                                   ),
                                   title: const Text(
                                     "Dr. Annisa, Sp. Jp.",
@@ -242,7 +247,6 @@ class AppointmentScreen extends StatelessWidget {
                                     "Terima kasih banyak Dokter sebagai tenaga profesional",
                                     style: TextStyle(
                                       color: Colors.black,
-
                                     ),
                                   ),
                                 ),
@@ -256,17 +260,13 @@ class AppointmentScreen extends StatelessWidget {
                   const SizedBox(height: 10),
                   const Text(
                     "Location",
-                    style: TextStyle(fontSize: 18,
-                        fontWeight: FontWeight.w500
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                   ),
                   ListTile(
                     leading: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle
-                      ),
+                          color: Colors.white, shape: BoxShape.circle),
                       child: const Icon(
                         Icons.location_on,
                         color: Color.fromARGB(255, 119, 151, 238),

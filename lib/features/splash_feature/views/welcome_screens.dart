@@ -1,6 +1,6 @@
-import 'package:cardio_2/screens/login_screen.dart';
-import 'package:cardio_2/widgets/navbar_roots.dart';
-import 'package:cardio_2/screens/signup_screen.dart';
+import 'package:cardio_2/features/auth_feature/views/login_screen.dart';
+import 'package:cardio_2/utils/navbar_roots.dart';
+import 'package:cardio_2/features/auth_feature/views/signup_screen.dart';
 import 'package:flutter/material.dart';
 
 class WelcomeScreen extends StatelessWidget {

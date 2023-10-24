@@ -1,13 +1,15 @@
 import 'package:cardio_2/api/firebase_api.dart';
-import 'package:cardio_2/screens/notif_to_maps_screen.dart';
-import 'package:cardio_2/screens/welcome_screens.dart';
-import 'package:cardio_2/widgets/navbar_roots.dart';
+import 'package:cardio_2/features/auth_feature/view_model/auth_view_model.dart';
+import 'package:cardio_2/features/splash_feature/views/welcome_screens.dart';
+import 'package:cardio_2/utils/navbar_roots.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -17,13 +19,6 @@ void main() async {
   await GetStorage.init();
 
   WidgetsFlutterBinding.ensureInitialized();
-  //Remove this method to stop OneSignal Debugging
-  // OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-
-  // OneSignal.initialize(
-  //     "77e32082-ea27-42e3-a898-c72e141824ef"); // Perlu Diganti dengan ID akun cardio saver
-
-  // OneSignal.Notifications.requestPermission(true);
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -42,6 +37,9 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+  final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+
   @override
   void initState() {
     super.initState();
@@ -64,12 +62,21 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      navigatorKey: navigatorKey,
-      debugShowCheckedModeBanner: false,
-      home: FirebaseAuth.instance.currentUser == null
-          ? const WelcomeScreen()
-          : const NavBarRoots(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+            create: (_) => AuthViewModel(
+                  firebaseAuth: FirebaseAuth.instance,
+                  firebaseFirestore: firebaseFirestore,
+                ))
+      ],
+      child: GetMaterialApp(
+        navigatorKey: navigatorKey,
+        debugShowCheckedModeBanner: false,
+        home: FirebaseAuth.instance.currentUser == null
+            ? const WelcomeScreen()
+            : const NavBarRoots(),
+      ),
     );
   }
 }

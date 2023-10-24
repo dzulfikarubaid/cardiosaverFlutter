@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cardio_2/screens/login_screen.dart';
-import 'package:cardio_2/screens/update_screen.dart';
+import 'package:cardio_2/features/auth_feature/views/login_screen.dart';
+import 'package:cardio_2/%5Blegacy%5Dscreens/update_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

@@ -1,11 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cardio_2/features/auth_feature/view_model/auth_view_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:cardio_2/screens/login_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:cardio_2/features/auth_feature/views/login_screen.dart';
+import 'package:get/get.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:provider/provider.dart';
 
 class SignUpScreen extends StatefulWidget {
   static const String routeName = '/auth-screen';
@@ -17,84 +16,12 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore =
-      FirebaseFirestore.instance; // Firestore instance
   bool passToggle = true;
   TextEditingController firstnameController = TextEditingController();
   TextEditingController lastnameController = TextEditingController();
   TextEditingController emailAddressController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController phoneNumberController = TextEditingController();
-  String? errorText;
-  bool isLoading = false;
-
-  Future<void> _register() async {
-    try {
-      setState(() {
-        isLoading = true;
-      });
-      String fullname =
-          "${firstnameController.text} ${lastnameController.text}";
-      final credential = await _auth.createUserWithEmailAndPassword(
-        email: emailAddressController.text,
-        password: passwordController.text,
-      );
-      await FirebaseChatCore.instance.createUserInFirestore(
-        types.User(
-          firstName: firstnameController.text,
-          lastName: lastnameController.text,
-          id: credential.user!.uid,
-          imageUrl:
-              'https://ui-avatars.com/api/?name=${firstnameController.text[0]}+${lastnameController.text[0]}',
-        ),
-      );
-
-      final User? user = credential.user;
-      if (user != null) {
-        await user.updateDisplayName(fullname);
-      }
-
-      // Create a Firestore document for the registered user
-      await _firestore.collection('users').doc(credential.user?.uid).set({
-        'firstname': firstnameController.text,
-        'lastname': lastnameController.text,
-        'email': emailAddressController.text,
-        'phone_number': phoneNumberController.text,
-      });
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) =>
-              const LoginScreen(), // Replace LoginScreen with your login page
-        ),
-      );
-      setState(() {
-        errorText = null;
-      });
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        setState(() {
-          errorText = 'The password provided is too weak.';
-        });
-      } else if (e.code == 'email-already-in-use') {
-        setState(() {
-          errorText = 'The account already exists for that email.';
-        });
-      } else {
-        setState(() {
-          errorText = 'An unknown error occurred';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        errorText = 'An error occurred: $e';
-      });
-    }
-    setState(() {
-      isLoading = false;
-    });
-  }
 
   @override
   void dispose() {
@@ -106,6 +33,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AuthViewModel authViewModelRead = context.read<AuthViewModel>();
+    AuthViewModel authViewModelWatch = context.watch<AuthViewModel>();
+
     return Scaffold(
       body: Material(
         color: Colors.white,
@@ -118,13 +48,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   padding: const EdgeInsets.all(20),
                   child: Image.asset("images/screen2.png"),
                 ),
-                Text(
-                  errorText ??
-                      '', // Display errorText if it's not null, otherwise display an empty string
-                  style: const TextStyle(
-                    color: Colors.red, // You can customize the text color
+                if (authViewModelWatch.errorText.isNotEmpty)
+                  Text(
+                    authViewModelWatch.errorText,
+                    style: const TextStyle(
+                      color: Colors.red, // You can customize the text color
+                    ),
                   ),
-                ),
                 const SizedBox(height: 15),
                 Padding(
                   padding:
@@ -219,12 +149,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       color: Colors.blueAccent,
                       borderRadius: BorderRadius.circular(50),
                       child: InkWell(
-                        onTap: _register,
+                        onTap: authViewModelWatch.loading
+                            ? null
+                            : () {
+                                authViewModelRead.register(
+                                    firstnameController.text,
+                                    lastnameController.text,
+                                    emailAddressController.text,
+                                    passwordController.text,
+                                    phoneNumberController.text);
+                              },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                               vertical: 15, horizontal: 40),
                           child: Center(
-                            child: isLoading
+                            child: authViewModelWatch.loading
                                 ? LoadingAnimationWidget.horizontalRotatingDots(
                                     color: Colors.white, size: 25)
                                 : const Text(
@@ -254,12 +193,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
-                          ),
-                        );
+                        Get.to(() => const LoginScreen());
                       },
                       child: const Text(
                         "Log In",

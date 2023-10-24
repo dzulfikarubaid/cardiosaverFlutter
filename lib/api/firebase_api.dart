@@ -1,6 +1,4 @@
-import 'dart:convert';
-import 'package:cardio_2/main.dart';
-import 'package:cardio_2/screens/notif_to_maps_screen.dart';
+import 'package:cardio_2/features/notif_to_map_feature/views/notif_to_maps_screen.dart';
 import 'package:get/get.dart';
 import 'package:timezone/data/latest_all.dart' as timezone;
 import 'package:timezone/timezone.dart' as timezone;

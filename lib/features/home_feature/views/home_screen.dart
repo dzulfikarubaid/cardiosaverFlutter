@@ -4,8 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'package:cardio_2/screens/appointment_screen.dart';
-import 'package:cardio_2/screens/healthcheck_screen.dart';
+import 'package:cardio_2/features/appointment_feature/views/appointment_screen.dart';
+import 'package:cardio_2/features/healthcheck_feature/views/healthcheck_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -24,13 +24,7 @@ class DataModel {
   String? bpm;
   String? rr;
 
-
-  DataModel({
-    this.alamat,
-    this.risk,
-    this.bpm,
-    this.rr
-  });
+  DataModel({this.alamat, this.risk, this.bpm, this.rr});
 }
 
 class _HomeScreenState extends State<HomeScreen> {
@@ -87,9 +81,10 @@ class _HomeScreenState extends State<HomeScreen> {
         dynamic data = snapshot.data();
         if (data != null) {
           bpm = data['bpm'];
-           double originalDouble = double.parse(bpm.toString());
+          double originalDouble = double.parse(bpm.toString());
           // Bulatkan ke dua desimal
-          double roundedDouble = double.parse(originalDouble.toStringAsFixed(2));
+          double roundedDouble =
+              double.parse(originalDouble.toStringAsFixed(2));
           // Konversi kembali ke string
           bpm = roundedDouble.toString();
           rr = data['interval'];
@@ -150,10 +145,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     getUserName(); // Panggil fungsi untuk mendapatkan nama pengguna saat widget diinisialisasi
-    if(Uid != null){
-      fetchDataFromFirestore("${Uid!}_${DateTime.now().toString().replaceAll(" ", "").replaceAll('-', '').replaceAll(':', '').replaceAll('.', '')}");
+    if (Uid != null) {
+      fetchDataFromFirestore(
+          "${Uid!}_${DateTime.now().toString().replaceAll(" ", "").replaceAll('-', '').replaceAll(':', '').replaceAll('.', '')}");
     }
   }
 
@@ -254,14 +250,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Text(
                               'Hello, ${userName ?? ''}',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'Noto Sans',
                               ),
                             ),
-                            Padding(
+                            const Padding(
                               padding: EdgeInsets.only(right: 35, bottom: 40),
                               child: Padding(
                                 padding: EdgeInsets.only(top: 10),
@@ -298,10 +294,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: iconColor,
                                   ),
                                   Padding(
-                                    padding: EdgeInsets.only(left: 10),
+                                    padding: const EdgeInsets.only(left: 10),
                                     child: Text(
                                       riskLevel ?? ' ',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,

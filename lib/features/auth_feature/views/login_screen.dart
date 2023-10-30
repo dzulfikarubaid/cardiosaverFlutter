@@ -107,14 +107,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Center(
                             child: authViewModelWatch.loading
                                 ? LoadingAnimationWidget.horizontalRotatingDots(
-                                    color: Colors.white,
-                                    size:
-                                        25) // Tampilkan loading indicator jika isLoading true
+                                    color: Colors.white, size: 16)
                                 : const Text(
                                     "Log In",
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 25,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -143,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text(
                         "Create Account",
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Colors.blueAccent,
                         ),

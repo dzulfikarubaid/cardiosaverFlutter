@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:cardio_2/features/auth_feature/views/login_screen.dart';
+import 'package:cardio_2/services/firebase_firestore_service.dart';
+import 'package:cardio_2/services/firebase_storage_service.dart';
 import 'package:cardio_2/utils/navbar_roots.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,7 +19,7 @@ enum Status {
   authenticateCanceled,
 }
 
-class AuthViewModel extends ChangeNotifier {
+class AuthViewModel with ChangeNotifier {
   final FirebaseAuth firebaseAuth;
   final FirebaseFirestore firebaseFirestore;
 
@@ -77,34 +80,30 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   // SIGNUP
-  Future<void> register(String firstname, String lastname, String email,
-      String password, String phone) async {
+  Future<void> register(String firstname, String email, String password,
+      String phone, Uint8List? file, bool isDoctor) async {
     setLoading(true);
     setErrorText('');
 
     try {
-      String fullname = "$firstname $lastname";
-
-      final credential = await _auth.createUserWithEmailAndPassword(
+      // signup with email password
+      final user = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      final User? user = credential.user;
-      if (user != null) {
-        await user.updateDisplayName(fullname);
-      }
+      // upload image to firestore
+      final image = await FirebaseStorageService.uploadImage(
+          file!, 'image/profile/${user.user!.uid}');
 
-      // Create a Firestore document for the registered user
-      await firebaseFirestore
-          .collection('users')
-          .doc(credential.user?.uid)
-          .set({
-        'firstname': firstname,
-        'lastname': lastname,
-        'email': email,
-        'phone_number': phone,
-      });
+      //create user
+      await FirebaseFirestoreService.createUser(
+        image: image,
+        email: user.user!.email!,
+        isDoctor: isDoctor,
+        uid: user.user!.uid,
+        name: firstname,
+      );
 
       Get.off(() => const LoginScreen());
 
@@ -113,10 +112,13 @@ class AuthViewModel extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         setErrorText('The password provided is too weak.');
+        setLoading(false);
       } else if (e.code == 'email-already-in-use') {
         setErrorText('The account already exists for that email.');
+        setLoading(false);
       } else {
         setErrorText('An unknown error occurred.');
+        setLoading(false);
       }
     } catch (e) {
       setErrorText('An error occurred: $e');

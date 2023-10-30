@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:cardio_2/features/auth_feature/view_model/auth_view_model.dart';
+import 'package:cardio_2/services/media_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cardio_2/features/auth_feature/views/login_screen.dart';
@@ -17,17 +20,19 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   bool passToggle = true;
-  TextEditingController firstnameController = TextEditingController();
-  TextEditingController lastnameController = TextEditingController();
+  TextEditingController fullnameController = TextEditingController();
   TextEditingController emailAddressController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController phoneNumberController = TextEditingController();
+  Uint8List? file;
+  bool? isDoctor = false;
 
   @override
   void dispose() {
-    firstnameController.dispose();
-    lastnameController.dispose();
+    fullnameController.dispose();
+    passwordController.dispose();
     emailAddressController.dispose();
+    phoneNumberController.dispose();
     super.dispose();
   }
 
@@ -43,40 +48,59 @@ class _SignUpScreenState extends State<SignUpScreen> {
           child: SafeArea(
             child: Column(
               children: [
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Image.asset("images/screen2.png"),
+                const Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Center(
+                    child: Text(
+                      "Sign Up",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
-                if (authViewModelWatch.errorText.isNotEmpty)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () async {
+                        final pickedImage = await MediaService.pickImage();
+                        setState(() => file = pickedImage!);
+                      },
+                      child: file != null
+                          ? CircleAvatar(
+                              radius: 45,
+                              backgroundImage: MemoryImage(file!),
+                            )
+                          : const CircleAvatar(
+                              radius: 45,
+                              backgroundColor: Colors.blueAccent,
+                              child: Icon(
+                                Icons.add_a_photo,
+                                size: 32,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                if (authViewModelWatch.errorText.isNotEmpty || file == null)
                   Text(
                     authViewModelWatch.errorText,
                     style: const TextStyle(
                       color: Colors.red, // You can customize the text color
                     ),
                   ),
-                const SizedBox(height: 15),
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
                   child: TextField(
-                    controller: firstnameController,
+                    controller: fullnameController,
                     decoration: InputDecoration(
-                      labelText: "First Name",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      prefixIcon: const Icon(Icons.person),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-                  child: TextField(
-                    controller: lastnameController,
-                    decoration: InputDecoration(
-                      labelText: "Last Name",
+                      labelText: "Fulname",
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -140,6 +164,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: isDoctor,
+                        onChanged: (value) {
+                          setState(() {
+                            isDoctor = value;
+                          });
+                        },
+                      ),
+                      const Text(
+                        'Register as a doctor ',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.all(10),
@@ -153,11 +196,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ? null
                             : () {
                                 authViewModelRead.register(
-                                    firstnameController.text,
-                                    lastnameController.text,
-                                    emailAddressController.text,
-                                    passwordController.text,
-                                    phoneNumberController.text);
+                                  fullnameController.text,
+                                  emailAddressController.text,
+                                  passwordController.text,
+                                  phoneNumberController.text,
+                                  file,
+                                  isDoctor!,
+                                );
                               },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
@@ -170,7 +215,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     "Sign Up",
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 25,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -186,7 +231,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     const Text(
                       "Already have an account?",
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: Colors.black54,
                       ),
@@ -198,7 +243,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       child: const Text(
                         "Log In",
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: Colors.blueAccent,
                         ),

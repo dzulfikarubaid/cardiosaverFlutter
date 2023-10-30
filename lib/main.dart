@@ -1,5 +1,6 @@
 import 'package:cardio_2/api/firebase_api.dart';
 import 'package:cardio_2/features/auth_feature/view_model/auth_view_model.dart';
+import 'package:cardio_2/features/chat_feature/view_model/chat_view_model.dart';
 import 'package:cardio_2/features/splash_feature/views/welcome_screens.dart';
 import 'package:cardio_2/utils/navbar_roots.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -65,10 +66,12 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-            create: (_) => AuthViewModel(
-                  firebaseAuth: FirebaseAuth.instance,
-                  firebaseFirestore: firebaseFirestore,
-                ))
+          create: (_) => AuthViewModel(
+            firebaseAuth: FirebaseAuth.instance,
+            firebaseFirestore: firebaseFirestore,
+          ),
+        ),
+        ChangeNotifierProvider(create: (_) => ChatViewModel()),
       ],
       child: GetMaterialApp(
         navigatorKey: navigatorKey,

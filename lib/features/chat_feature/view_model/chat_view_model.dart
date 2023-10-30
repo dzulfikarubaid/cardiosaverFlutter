@@ -1,69 +1,74 @@
-import 'dart:io';
-
-import 'package:cardio_2/features/chat_feature/models/message_chat.dart';
-import 'package:cardio_2/utils/firestore_constants.dart';
+import 'package:cardio_2/features/chat_feature/models/message.model.dart';
+import 'package:cardio_2/features/chat_feature/models/user.model.dart';
+import 'package:cardio_2/services/firebase_firestore_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class ChatViewModel extends ChangeNotifier {
-  final FirebaseFirestore firebaseFirestore;
-  final FirebaseStorage firebaseStorage;
+class ChatViewModel with ChangeNotifier {
+  ScrollController scrollController = ScrollController();
 
-  ChatViewModel(
-      {required this.firebaseFirestore, required this.firebaseStorage});
+  List<UserModel> users = [];
+  UserModel? user;
+  List<Message> messages = [];
+  List<UserModel> search = [];
 
-  UploadTask uploadFile(File image, String fileName) {
-    Reference reference = firebaseStorage.ref().child(fileName);
-    UploadTask uploadTask = reference.putFile(image);
-    return uploadTask;
-  }
-
-  Future<void> updateDataFirestore(String collectionPath, String docPath,
-      Map<String, dynamic> dataNeedUpdate) {
-    return firebaseFirestore
-        .collection(collectionPath)
-        .doc(docPath)
-        .update(dataNeedUpdate);
-  }
-
-  Stream<QuerySnapshot> getChatStream(String groupChatId, int limit) {
-    return firebaseFirestore
-        .collection(FirestoreConstants.pathMessageCollection)
-        .doc(groupChatId)
-        .collection(groupChatId)
-        .orderBy(FirestoreConstants.timestamp, descending: true)
-        .limit(limit)
-        .snapshots();
-  }
-
-  void sendMessage(String content, int type, String groupChatId,
-      String currentUserId, String peerId) {
-    DocumentReference documentReference = firebaseFirestore
-        .collection(FirestoreConstants.pathMessageCollection)
-        .doc(groupChatId)
-        .collection(groupChatId)
-        .doc(DateTime.now().millisecondsSinceEpoch.toString());
-
-    MessageChat messageChat = MessageChat(
-      idFrom: currentUserId,
-      idTo: peerId,
-      timestamp: DateTime.now().millisecondsSinceEpoch.toString(),
-      content: content,
-      type: type,
-    );
-
-    FirebaseFirestore.instance.runTransaction((transaction) async {
-      transaction.set(
-        documentReference,
-        messageChat.toJson(),
-      );
+  List<UserModel> getAllUsers() {
+    FirebaseFirestore.instance
+        .collection('users')
+        .orderBy('lastActive', descending: true)
+        .snapshots(includeMetadataChanges: true)
+        .listen((users) {
+      this.users =
+          users.docs.map((doc) => UserModel.fromJson(doc.data())).toList();
+      notifyListeners();
     });
+    return users;
   }
+
+  UserModel? getUserById(String userId) {
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .snapshots(includeMetadataChanges: true)
+        .listen((user) {
+      this.user = UserModel.fromJson(user.data()!);
+      notifyListeners();
+    });
+    return user;
+  }
+
+  List<Message> getMessages(String receiverId) {
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('chat')
+        .doc(receiverId)
+        .collection('messages')
+        .orderBy('sentTime', descending: false)
+        .snapshots(includeMetadataChanges: true)
+        .listen((messages) {
+      this.messages =
+          messages.docs.map((doc) => Message.fromJson(doc.data())).toList();
+      notifyListeners();
+
+      scrollDown();
+    });
+    return messages;
+  }
+
+  void scrollDown() => WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (scrollController.hasClients) {
+          scrollController.jumpTo(scrollController.position.maxScrollExtent);
+        }
+      });
+
+  Future<void> searchUser(String name) async {
+    search = await FirebaseFirestoreService.searchUser(name);
+    notifyListeners();
+  }
+
+  //
 }
 
-class TypeMessage {
-  static const text = 0;
-  static const image = 1;
-  static const sticker = 2;
-}
+class TypeMessage {}

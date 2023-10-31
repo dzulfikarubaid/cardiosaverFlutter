@@ -94,6 +94,12 @@ class FirebaseFirestoreService {
         .where("name", isGreaterThanOrEqualTo: name)
         .get();
 
-    return snapshot.docs.map((doc) => UserModel.fromJson(doc.data())).toList();
+    return snapshot.docs
+        .map(
+          (doc) => UserModel.fromJson(
+            doc.data(),
+          ),
+        )
+        .toList();
   }
 }

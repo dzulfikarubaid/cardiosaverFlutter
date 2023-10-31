@@ -1,7 +1,8 @@
-import 'package:cardio_2/features/chat_feature/models/user.model.dart';
 import 'package:cardio_2/features/chat_feature/view_model/chat_view_model.dart';
+import 'package:cardio_2/features/chat_feature/views/search_screen.dart';
 import 'package:cardio_2/features/chat_feature/views/widgets/user_item.dart';
 import 'package:cardio_2/services/firebase_firestore_service.dart';
+import 'package:cardio_2/services/notification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,45 +16,7 @@ class MessagesScreen extends StatefulWidget {
 
 class _MessagesScreenState extends State<MessagesScreen>
     with WidgetsBindingObserver {
-  // final notificationService = NotificationsService();
-  final userData = [
-    UserModel(
-      uid: '1',
-      name: 'Hazy',
-      email: 'test@test.test',
-      isDoctor: true,
-      image: 'https://i.pravatar.cc/150?img=0',
-      isOnline: true,
-      lastActive: DateTime.now(),
-    ),
-    UserModel(
-      uid: '1',
-      name: 'Charlotte',
-      email: 'test@test.test',
-      isDoctor: true,
-      image: 'https://i.pravatar.cc/150?img=1',
-      isOnline: false,
-      lastActive: DateTime.now(),
-    ),
-    UserModel(
-      uid: '2',
-      name: 'Ahmed',
-      email: 'test@test.test',
-      isDoctor: false,
-      image: 'https://i.pravatar.cc/150?img=2',
-      isOnline: true,
-      lastActive: DateTime.now(),
-    ),
-    UserModel(
-      uid: '3',
-      name: 'Prateek',
-      email: 'test@test.test',
-      isDoctor: false,
-      image: 'https://i.pravatar.cc/150?img=3',
-      isOnline: false,
-      lastActive: DateTime.now(),
-    ),
-  ];
+  final notificationService = NotificationsService();
 
   @override
   void initState() {
@@ -61,7 +24,7 @@ class _MessagesScreenState extends State<MessagesScreen>
     WidgetsBinding.instance.addObserver(this);
     Provider.of<ChatViewModel>(context, listen: false).getAllUsers();
 
-    // notificationService.firebaseNotification(context);
+    notificationService.firebaseNotification(context);
   }
 
   @override
@@ -99,53 +62,32 @@ class _MessagesScreenState extends State<MessagesScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // TITIKE
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                "Massages",
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
+            // TITLE
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    "Massages",
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const UsersSearchScreen(),
+                    ),
+                  ),
+                  icon: const Icon(
+                    Icons.search,
+                    color: Colors.black,
+                    size: 28,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 30),
-
-            // SEARCH USER
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 10,
-                        spreadRadius: 2,
-                      )
-                    ]),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(
-                      width: 300,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                              hintText: "Search", border: InputBorder.none),
-                        ),
-                      ),
-                    ),
-                    const Icon(
-                      Icons.search,
-                      color: Color.fromARGB(255, 80, 128, 240),
-                    )
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
 
             // ACTIVE USER
             // const Padding(

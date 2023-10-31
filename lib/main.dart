@@ -16,6 +16,12 @@ import 'package:get_storage/get_storage.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
+Future<void> _backgroundMessageHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+}
+
 void main() async {
   await GetStorage.init();
 
@@ -25,6 +31,9 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await FirebaseApi().initNotifications();
+  await FirebaseMessaging.instance.getInitialMessage();
+  FirebaseMessaging.onBackgroundMessage(_backgroundMessageHandler);
+
   FirebaseApi.init();
 
   runApp(const MyApp());

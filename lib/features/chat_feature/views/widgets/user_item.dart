@@ -1,6 +1,7 @@
 import 'package:cardio_2/features/chat_feature/models/user.model.dart';
 import 'package:cardio_2/features/chat_feature/views/chat_screen.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:get/get.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:flutter/material.dart';
 
@@ -19,7 +20,9 @@ class _UserItemState extends State<UserItem> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        Get.to(() => ChatScreen(userId: widget.user.uid));
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: ListTile(

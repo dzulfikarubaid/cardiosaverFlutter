@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:cardio_2/features/auth_feature/views/login_screen.dart';
 import 'package:cardio_2/services/firebase_firestore_service.dart';
 import 'package:cardio_2/services/firebase_storage_service.dart';
+import 'package:cardio_2/services/notification_service.dart';
 import 'package:cardio_2/utils/navbar_roots.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -22,6 +23,7 @@ enum Status {
 class AuthViewModel with ChangeNotifier {
   final FirebaseAuth firebaseAuth;
   final FirebaseFirestore firebaseFirestore;
+  static final notifications = NotificationsService();
 
   bool loading = false;
   String errorText = '';
@@ -53,6 +55,13 @@ class AuthViewModel with ChangeNotifier {
         email: email,
         password: password,
       );
+
+      await FirebaseFirestoreService.updateUserData(
+        {'lastActive': DateTime.now()},
+      );
+
+      await notifications.requestPermission();
+      await notifications.getToken();
 
       Get.off(() => const NavBarRoots());
 
@@ -104,6 +113,9 @@ class AuthViewModel with ChangeNotifier {
         uid: user.user!.uid,
         name: firstname,
       );
+
+      await notifications.requestPermission();
+      await notifications.getToken();
 
       Get.off(() => const LoginScreen());
 

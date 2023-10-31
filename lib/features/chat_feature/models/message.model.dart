@@ -32,7 +32,8 @@ class Message {
 
 enum MessageType {
   text,
-  image;
+  image,
+  send;
 
   String toJson() => name;
 

@@ -1,120 +1,96 @@
+import 'package:cardio_2/features/chat_feature/view_model/chat_view_model.dart';
+import 'package:cardio_2/features/chat_feature/views/widgets/chat_messages.dart';
+import 'package:cardio_2/features/chat_feature/views/widgets/chat_text_field.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../../../[legacy]widgets/chat_sample.dart';
+class ChatScreen extends StatefulWidget {
+  const ChatScreen({super.key, required this.userId});
 
-class ChatScreen extends StatelessWidget {
-  const ChatScreen({super.key});
+  final String userId;
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  @override
+  void initState() {
+    Provider.of<ChatViewModel>(context, listen: false)
+      ..getUserById(widget.userId)
+      ..getMessages(widget.userId);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
           preferredSize: const Size.fromHeight(65),
-          child: AppBar(
-            backgroundColor: const Color.fromARGB(255, 80, 128, 240),
-            leadingWidth: 30,
-            title: const Padding(
-              padding: EdgeInsets.only(top: 8),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 25,
-                    backgroundImage: AssetImage("images/doc_1.png"),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Text(
-                      "Dr. Doctor Name",
-                      style: TextStyle(
-                        color: Colors.white,
+          child: Consumer<ChatViewModel>(
+            builder: (context, value, child) => value.user != null
+                ? AppBar(
+                    backgroundColor: Colors.blueAccent,
+                    leadingWidth: 30,
+                    title: Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 25,
+                            backgroundImage: NetworkImage(value.user!.image),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      value.user!.name,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    if (value.user!.isDoctor)
+                                      const Text(
+                                        " (Doctor)",
+                                        style: TextStyle(
+                                          color: Colors.blueAccent,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.normal,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                Text(
+                                  value.user!.isOnline ? 'Online' : 'Offline',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
                       ),
                     ),
                   )
-                ],
-              ),
-            ),
-            actions: const [
-              Padding(
-                padding: EdgeInsets.only(top: 8, right: 10),
-                child: Icon(
-                  Icons.call,
-                  color: Colors.white,
-                  size: 26,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 8, right: 10),
-                child: Icon(
-                  Icons.video_call,
-                  color: Colors.white,
-                  size: 30,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 8, right: 10),
-                child: Icon(
-                  Icons.more_vert,
-                  color: Colors.white,
-                  size: 26,
-                ),
-              )
-            ],
+                : const SizedBox(),
           )),
-      body: ListView.builder(
-          itemCount: 10,
-          padding:
-              const EdgeInsets.only(top: 20, left: 15, right: 15, bottom: 80),
-          itemBuilder: (context, index) => const ChatSample()),
-      bottomSheet: Container(
-        height: 65,
-        decoration: const BoxDecoration(color: Colors.white, boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            spreadRadius: 2,
-            blurRadius: 10,
-          )
-        ]),
-        child: Row(
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(left: 8),
-              child: Icon(
-                Icons.add,
-                size: 30,
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(left: 5),
-              child: Icon(
-                Icons.emoji_emotions_outlined,
-                color: Colors.black,
-                size: 30,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: Container(
-                alignment: Alignment.centerRight,
-                width: MediaQuery.of(context).size.width / 1.6,
-                child: TextFormField(
-                  decoration: const InputDecoration(
-                    hintText: "Type Something",
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-            ),
-            const Spacer(),
-            const Padding(
-              padding: EdgeInsets.only(right: 10),
-              child: Icon(
-                Icons.send,
-                size: 30,
-                color: Color.fromARGB(255, 80, 128, 240),
-              ),
-            )
-          ],
-        ),
+
+      // Chat Screen
+      body: Column(
+        children: [
+          ChatMessages(receiverId: widget.userId),
+          ChatTextField(receiverId: widget.userId)
+        ],
       ),
     );
   }

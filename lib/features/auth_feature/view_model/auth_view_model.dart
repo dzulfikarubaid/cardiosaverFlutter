@@ -125,16 +125,20 @@ class AuthViewModel with ChangeNotifier {
       if (e.code == 'weak-password') {
         setErrorText('The password provided is too weak.');
         setLoading(false);
+        return;
       } else if (e.code == 'email-already-in-use') {
         setErrorText('The account already exists for that email.');
         setLoading(false);
+        return;
       } else {
         setErrorText('An unknown error occurred.');
         setLoading(false);
+        return;
       }
     } catch (e) {
       setErrorText('An error occurred: $e');
       setLoading(false);
+      return;
     }
     Timer(const Duration(seconds: 2), () {
       setErrorText('');

@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> fetchDataFromFirestore(String id) async {
     try {
       await http
-          .get(Uri.parse('http://4.246.201.17/api/data_dl/$id/'))
+          .get(Uri.parse('http://203.175.11.228/api/data_dl/$id/'))
           .then((response) {
         print(response.body);
       }).catchError((error) {

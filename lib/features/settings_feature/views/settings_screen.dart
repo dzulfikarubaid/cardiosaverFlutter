@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cardio_2/features/auth_feature/views/login_screen.dart';
 import 'package:cardio_2/%5Blegacy%5Dscreens/update_screen.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -82,6 +81,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+
+
   @override
   void initState() {
     super.initState();
@@ -148,6 +149,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _signOut(context);
             },
           ),
+          buildListTile(
+            title: "Linked device",
+            icon: Icons.usb,
+            onTap: () {
+              _showLinkedDeviceModal(context);
+            },
+          ),
         ],
       ),
     );
@@ -178,4 +186,124 @@ class _SettingsScreenState extends State<SettingsScreen> {
       trailing: const Icon(Icons.arrow_forward_ios_rounded),
     );
   }
+}
+void _showLinkedDeviceModal(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Linked Devices",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            _buildDeviceContainer("Device 1", context),
+            _buildDeviceContainer("Device 2", context),
+            _buildDeviceContainer("Device 3", context),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+Widget _buildDeviceContainer(String deviceName, BuildContext context) {
+  double screenWidth = MediaQuery.of(context).size.width;
+
+  return InkWell(
+    onTap: () {
+      _showDevicePopup(context, deviceName);
+    },
+    child: Container(
+      margin: EdgeInsets.symmetric(vertical: 5),
+      width: screenWidth,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.blue),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Row(
+          children: [
+            Icon(
+              Icons.usb,
+              color: Colors.blue,
+              size: 24,
+            ),
+            SizedBox(width: 10),
+            Text(
+              deviceName,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.blue,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+
+void _showDevicePopup(BuildContext context, String deviceName) {
+  String uniqueCode = '';
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5), // Ubah radius ke 5
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  uniqueCode == "111"
+                      ? Column(
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: 64,
+                      ),
+                      SizedBox(height: 10),
+                      Text("Successfully connected to $deviceName", style: TextStyle(fontSize: 18)),
+                    ],
+                  )
+                      : Column(
+                    children: [
+                      Text("Allow conncetion with $deviceName ?", style: TextStyle( fontSize: 16,fontWeight: FontWeight.w700),),
+                      SizedBox(height: 10),
+                      Text("To continue, please enter a unique code on the device:"),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          hintText: "Enter Unique Code",
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            uniqueCode = value;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
